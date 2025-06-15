@@ -1,0 +1,1 @@
+# KataPreProj3_2task_SpringSecurity

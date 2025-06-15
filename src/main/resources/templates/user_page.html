@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Panel</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            color: white;
+            position: relative;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1rem;
+        }
+
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: #007bff;
+        }
+
+        .main-content {
+            padding: 20px;
+        }
+
+        .user-info {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .table-actions {
+            white-space: nowrap;
+        }
+
+        .role-badge {
+            margin-right: 5px;
+        }
+
+        .logout-btn {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .logout-btn:hover {
+            color: white;
+            text-decoration: none;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            margin-bottom: 0;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Боковая панель -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar p-0">
+            <div class="p-3 text-center">
+                <h4>Menu</h4>
+            </div>
+            <ul class="nav flex-column">
+                <!-- Показываем кнопку "Admin" только для роли ADMIN -->
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link active" th:href="@{/admin}">
+                        <i class="fas fa-user-shield me-2"></i> Admin
+                    </a>
+                </li>
+                <!-- Показываем кнопку "User" для всех аутентифицированных пользователей -->
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/user}">
+                        <i class="fas fa-user me-2"></i> User
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Основное содержимое -->
+        <div class="col-md-9 col-lg-10 main-content">
+            <!-- Информация о пользователе -->
+            <div class="user-info">
+                <h5>
+                    <span sec:authentication="name"></span> with roles:
+                    <span th:each="authority : ${#authentication.authorities}" class="badge bg-primary role-badge">
+                        <span th:text="${authority.authority.replace('ROLE_', '')}"></span>
+                    </span>
+                </h5>
+                <a class="logout-btn" th:href="@{/logout}">
+                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </a>
+            </div>
+
+            <!-- Заголовок страницы -->
+            <div class="page-header">
+                <h3 class="page-title">User panel</h3>
+            </div>
+
+            <!-- Вкладкa -->
+            <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users"
+                            type="button" role="tab" aria-controls="users" aria-selected="true">
+                        User
+                    </button>
+                </li>
+
+            </ul>
+
+            <!-- Содержимое вкладки -->
+            <div class="tab-content" id="adminTabsContent">
+                <!-- Вкладка "User" -->
+                <div class="tab-pane fade show active" id="user" role="tabpanel" aria-labelledby="users-tab">
+                    <div class="table-container mt-3">
+                        <h5 class="mb-3">User info</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <!-- Таблица пользователей -->
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Age</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td th:text="${user.id}"></td>
+                                    <td th:text="${user.username}"></td>
+                                    <td th:text="${user.lastName}"></td>
+                                    <td th:text="${user.age}"></td>
+                                    <td th:text="${user.email}"></td>
+                                    <td>
+        <span th:each="role : ${user.roles}" class="badge bg-primary role-badge">
+            <span th:text="${role.name.replace('ROLE_', '')}"></span>
+        </span>
+                                    </td>
+                                </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

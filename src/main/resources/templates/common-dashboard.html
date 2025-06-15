@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Panel</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            color: white;
+            position: relative;
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1rem;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: #007bff;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .user-info {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .table-actions {
+            white-space: nowrap;
+        }
+        .role-badge {
+            margin-right: 5px;
+        }
+        .logout-btn {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .logout-btn:hover {
+            color: white;
+            text-decoration: none;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            margin-bottom: 0;
+        }
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        /* Модальные окна */
+        .modal-header {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .modal-title {
+            font-weight: bold;
+        }
+        .modal-body .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .modal-footer {
+            border-top: none;
+            padding-top: 0;
+        }
+        /* Стили для стрелок в поле Age */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Боковая панель -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar p-0">
+            <div class="p-3 text-center">
+                <h4>Menu</h4>
+            </div>
+            <ul class="nav flex-column">
+                <!-- Показываем кнопку "Admin" только для роли ADMIN -->
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link active" th:href="@{/admin}">
+                        <i class="fas fa-user-shield me-2"></i> Admin
+                    </a>
+                </li>
+                <!-- Показываем кнопку "User" для всех аутентифицированных пользователей -->
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/user}">
+                        <i class="fas fa-user me-2"></i> User
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Основное содержимое -->
+        <div class="col-md-9 col-lg-10 main-content">
+            <!-- Информация о пользователе -->
+            <div class="user-info">
+                <h5>
+                    <span sec:authentication="name"></span> with roles:
+                    <span th:each="authority : ${#authentication.authorities}" class="badge bg-primary role-badge">
+                        <span th:text="${authority.authority.replace('ROLE_', '')}"></span>
+                    </span>
+                </h5>
+                <form th:action="@{/logout}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn btn-primary">Simple Logout</button>
+                </form>
+            </div>
+
+            <!-- Заголовок страницы -->
+            <div class="page-header">
+                <h3 class="page-title">Admin panel</h3>
+            </div>
+
+            <!-- Вкладки -->
+            <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true">
+                        Users
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="new-user-tab" data-bs-toggle="tab" data-bs-target="#new-user" type="button" role="tab" aria-controls="new-user" aria-selected="false">
+                        New User
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Содержимое вкладок -->
+            <div class="tab-content" id="adminTabsContent">
+                <!-- Вкладка "Users" -->
+                <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
+                    <div class="table-container mt-3">
+                        <h5 class="mb-3">Users table</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <!-- Таблица пользователей -->
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Age</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="user : ${users}">
+                                    <td th:text="${user.id}"></td>
+                                    <td th:text="${user.username}"></td>
+                                    <td th:text="${user.lastName}"></td>
+                                    <td th:text="${user.age}"></td>
+                                    <td th:text="${user.email}"></td>
+                                    <td>
+                                            <span th:each="role : ${user.roles}" class="badge bg-primary role-badge">
+                                                <span th:text="${role.name.replace('ROLE_', '')}"></span>
+                                            </span>
+                                    </td>
+                                    <td class="table-actions">
+                                        <!-- Кнопки редактирования и удаления -->
+                                        <button type="button" class="btn btn-sm btn-warning me-1" data-bs-toggle="modal"
+                                                data-bs-target="#editUserModal" th:attr="data-user-id=${user.id},
+                                                                data-user-username=${user.username},
+                                                                data-user-lastname=${user.lastName},
+                                                                data-user-age=${user.age},
+                                                                data-user-email=${user.email},
+                                                                data-user-roles=${user.roles.![name].toString()}">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <form th:action="@{/admin/delete/{id}(id=${user.id})}" method="post" style="display: inline;">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash-alt"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка "New User" -->
+                <div class="tab-pane fade" id="new-user" role="tabpanel" aria-labelledby="new-user-tab">
+                    <div class="mt-3">
+                        <h5 class="mb-3">Create New User</h5>
+                        <form id="createUserForm">
+                            <div class="mb-3">
+                                <label for="newUsername" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="newUsername" name="username" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="newLastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="newLastName" name="lastName" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="newAge" class="form-label">Age</label>
+                                <input type="number" class="form-control" id="newAge" name="age" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="newEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="newEmail" name="email" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="newPassword" name="password" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Role</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="newRoleAdmin" name="roles" value="ROLE_ADMIN">
+                                    <label class="form-check-label" for="newRoleAdmin">ADMIN</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="newRoleUser" name="roles" value="ROLE_USER">
+                                    <label class="form-check-label" for="newRoleUser">USER</label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Create User</button>
+                        </form>
+                    </div>
+                </div>
+
+                <script>
+                    function getCsrfToken() {
+                    const csrfCookie = document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith('XSRF-TOKEN='));
+
+                    if (csrfCookie) {
+                        return csrfCookie.split('=')[1]; // Возвращает значение токена
+                    }
+
+                    return null; // Если cookie не найдена
+                }
+                    document.getElementById('createUserForm').addEventListener('submit', function(event) {
+                        event.preventDefault();
+
+                        const formData = {
+                            username: document.getElementById('newUsername').value,
+                            lastName: document.getElementById('newLastName').value,
+                            age: document.getElementById('newAge').value,
+                            email: document.getElementById('newEmail').value,
+                            password: document.getElementById('newPassword').value,
+                            roles: [document.querySelector('input[name="roles"]:checked').value]
+                        };
+
+                        fetch('/admin/new', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': getCsrfToken()
+                            },
+                            body: JSON.stringify(formData)
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    window.location.href = '/dashboard'; // Редирект при успехе
+                                } else {
+                                    return response.text().then(errorMessage => {
+                                        alert('Ошибка: ' + errorMessage); // Отображение ошибки
+                                    });
+                                }
+                            })
+                            .catch(error => console.error('Ошибка:', error));
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования пользователя -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Edit user</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editUserForm" th:action="@{/admin/edit}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" id="editUserId" name="id">
+
+                    <div class="mb-3">
+                        <label class="form-label">ID</label>
+                        <input type="text" class="form-control" id="displayUserId" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editUsername" class="form-label">First name</label>
+                        <input type="text" class="form-control" id="editUsername" name="username" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editLastName" class="form-label">Last name</label>
+                        <input type="text" class="form-control" id="editLastName" name="lastName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editAge" class="form-label">Age</label>
+                        <input type="number" class="form-control" id="editAge" name="age" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editEmail" name="email" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="editPassword" name="password" placeholder="Leave blank to keep current">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" id="editRoleAdmin" name="roles" value="ROLE_ADMIN">
+                            <label class="form-check-label" for="editRoleAdmin">ADMIN</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" id="editRoleUser" name="roles" value="ROLE_USER">
+                            <label class="formCheck-label" for="editRoleUser">USER</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS и зависимости -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Обработчик открытия модального окна редактирования
+    document.getElementById('editUserModal').addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const userId = button.getAttribute('data-user-id');
+        const username = button.getAttribute('data-user-username');
+        const lastName = button.getAttribute('data-user-lastname');
+        const age = button.getAttribute('data-user-age');
+        const email = button.getAttribute('data-user-email');
+
+        // Получаем роли как строку и преобразуем в массив
+        const rolesStr = button.getAttribute('data-user-roles');
+        const roles = rolesStr ? rolesStr.replace('[', '').replace(']', '').split(',') : [];
+
+        // Заполняем форму
+        document.getElementById('editUserId').value = userId;
+        document.getElementById('displayUserId').value = userId;
+        document.getElementById('editUsername').value = username;
+        document.getElementById('editLastName').value = lastName;
+        document.getElementById('editAge').value = age;
+        document.getElementById('editEmail').value = email;
+
+        // Сбрасываем радиокнопки
+        document.getElementById('editRoleAdmin').checked = false;
+        document.getElementById('editRoleUser').checked = false;
+
+        // Устанавливаем выбранную роль
+        roles.forEach(role => {
+            const trimmedRole = role.trim().replace(/"/g, '');
+            if (trimmedRole === 'ROLE_ADMIN') {
+                document.getElementById('editRoleAdmin').checked = true;
+            } else if (trimmedRole === 'ROLE_USER') {
+                document.getElementById('editRoleUser').checked = true;
+            }
+        });
+    });
+
+</script>
+</body>
+</html>
