@@ -31,32 +31,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))// 1. Хранение токена в cookie
+                .csrf(csrf -> csrf.disable())// 1. Хранение токена в cookie
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/admin/new").permitAll() // Разрешаем POST-запросы
-                        .requestMatchers("/user_page/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/dashboard").authenticated()
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers(("/view/admin"),("/api/admin/**")).hasRole("ADMIN")// Разрешаем POST-запросы
+                        .requestMatchers("/view/user").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/view/dashboard").authenticated()
+                        .anyRequest().authenticated())
 
-                .formLogin(form -> form.loginPage("/login")
+                .formLogin(form -> form.loginPage("/view/login")
+                        .loginProcessingUrl("/login")
                         .usernameParameter("email") // 3. Настройка формы входа
-                        .defaultSuccessUrl("/dashboard", true)
-                        .failureUrl("/login?error=true")
+                        .defaultSuccessUrl("/view/dashboard", true)
+                        .failureUrl("/view/login?error=true")
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessUrl("/vew/login?logout")
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .permitAll()
                 )
                 .exceptionHandling(ex -> ex // 5. Обработка ошибок
-                        .accessDeniedPage("/access-denied")
+                        .accessDeniedPage("/view/access-denied")
                 );
 
 

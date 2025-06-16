@@ -20,8 +20,8 @@ import ru.kata.spring.boot_security.demo.service.UserMapper;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.util.List;
-
 @RestController
+@RequestMapping("/api")
 public class AppRestController {
     private final UserService userService;
     private final RoleService roleService;
@@ -67,10 +67,9 @@ public class AppRestController {
 
     @PostMapping("/admin/new")
     @Transactional
-    public ResponseEntity<String> createUser(@RequestBody UserRequestDTO userRequestDTO, HttpServletRequest request) {
+    public ResponseEntity<String> createUser(@RequestBody UserRequestDTO userRequestDTO) {
 
-        String csrfToken = request.getHeader("X-CSRF-TOKEN");
-        System.err.println("Received CSRF Token: " + csrfToken); // Л
+
         if (userService.findByEmail(userRequestDTO.getEmail()).isPresent()) {
             System.err.println(userRequestDTO.getUsername()+" "+userRequestDTO.getLastName());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

@@ -15,7 +15,7 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.util.HashSet;
 import java.util.Set;
-
+@RequestMapping("/view")
 @Controller
 public class AppController {
     private final UserService userService;
@@ -62,43 +62,7 @@ public class AppController {
         }
     }
 
-    @PostMapping("/admin/edit")
-    public String updateUser(
-            @RequestParam("id") Long id,
-            @RequestParam("username") String username,
-            @RequestParam("lastName") String lastName,
-            @RequestParam("age") int age,
-            @RequestParam("email") String email,
-            @RequestParam(value = "password", required = false) String password,
-            @RequestParam(value = "roles", required = false) String roleName) { // Теперь roles — это строка
 
-        // Получаем существующего пользователя из базы
-        User existingUser = userService.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        // Обновляем основные поля
-        existingUser.setUsername(username);
-        existingUser.setLastName(lastName);
-        existingUser.setAge(age);
-        existingUser.setEmail(email);
-
-        // Обновляем пароль, только если он был изменен
-        if (password != null && !password.isEmpty()) {
-            existingUser.setPassword(password);
-        }
-
-        // Обрабатываем роль
-        if (roleName != null) {
-            Set<Role> roles = new HashSet<>();
-            Role role = roleService.findByName(roleName)
-                    .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
-            roles.add(role);
-            existingUser.setRoles(roles);
-        }
-
-        userService.update(existingUser);
-        return "redirect:/dashboard";
-    }
 
     @GetMapping("/user")
     public String userPage(Authentication authentication, Model model) {
@@ -116,11 +80,11 @@ public class AppController {
         String username = authentication.getName();
         User user = userService.findByName(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        System.err.println( user.getUsername()+ " "+ user.getLastName());
+        model.addAttribute("user",user);
         model.addAttribute("users", userService.viewAll());
         return "common-dashboard"; // Имя шаблона для страницы администратора
     }
-
-
 
 
 }
