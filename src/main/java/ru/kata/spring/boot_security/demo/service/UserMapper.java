@@ -8,49 +8,33 @@ import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-
+//    @Mapping(target = "password", ignore = true)
     UserRequestDTO toDto(User user);
 
+   // @Mapping(target = "roles", ignore = true)
     User toEntity(UserRequestDTO userRequestDTO);
 
-
-    @Mapping(target = "password", source = "password")
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "roles", expression = "java(mapRoles(userResponseDTO.getRoles()))")
-    User toEntityFromResponse(UserResponseDTO userResponseDTO);
-    @AfterMapping
-    default Set<Role> mapRoles(Set<String> roleNames,@MappingTarget User user, @Context RoleService roleService) {
-        if (roleNames == null) {
-            return Collections.emptySet();
+    default UserResponseDTO toResponseDto(User user) {
+        if (user == null) {
+            return null;
         }
-        return roleNames.stream()
-                .map(roleName -> {
-                    Role role = new Role();
-                    role.setName(roleName);
-                    return role;
-                })
-                .collect(Collectors.toSet());
+
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setLastName(user.getLastName());
+        dto.setEmail(user.getEmail());
+        dto.setAge(user.getAge());
+        dto.setRoles(user.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet()));
+
+        return dto;
     }
-//    @AfterMapping
-//    default void mapRoles(UserResponseDTO dto, @MappingTarget User user, @Context RoleService roleService) {
-//        if (dto.getRoles() != null && roleService != null) {
-//            Set<Role> roles = dto.getRoles().stream()
-//                    .map(roleService::findByName)
-//                    .filter(Optional::isPresent)
-//                    .map(Optional::get)
-//                    .collect(Collectors.toSet());
-//            user.setRoles(roles);
-//        }
-//    }
-}
-
-
 }

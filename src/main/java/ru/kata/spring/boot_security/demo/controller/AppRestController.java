@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
+import ru.kata.spring.boot_security.demo.DTO.ChangePasswordDTO;
 import ru.kata.spring.boot_security.demo.DTO.UserRequestDTO;
 import ru.kata.spring.boot_security.demo.DTO.UserResponseDTO;
 import ru.kata.spring.boot_security.demo.entity.User;
@@ -40,7 +41,7 @@ public class AppRestController {
             ("/admin/edit")
     @Transactional
     public ResponseEntity<String> updateUser(@RequestBody UserResponseDTO userResponseDTO) {
-        System.err.println("ПАРОЛЬ метода updateUser "+ userResponseDTO.getPassword());
+
         if (userService.findByEmail(userResponseDTO.getEmail()).isPresent()) {
             userService.update(userMapper.toEntityFromResponse(userResponseDTO));
             return ResponseEntity.status(HttpStatus.OK)
@@ -51,6 +52,11 @@ public class AppRestController {
         }
 
 
+    }
+    @PostMapping("/admin/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDTO dto) {
+        userService.changePassword(dto);
+        return ResponseEntity.ok().build();
     }
 
 

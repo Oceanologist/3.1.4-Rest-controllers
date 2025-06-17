@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import ru.kata.spring.boot_security.demo.DTO.ChangePasswordDTO;
 import ru.kata.spring.boot_security.demo.DTO.UserRequestDTO;
 import ru.kata.spring.boot_security.demo.entity.User;
 
@@ -20,6 +21,8 @@ public interface UserService {
     List<User> viewAll();
 
     Optional<User> findByEmail(String email);
+
+    public void changePassword(ChangePasswordDTO dto);
 
 }
 
