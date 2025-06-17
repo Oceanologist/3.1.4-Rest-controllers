@@ -40,6 +40,7 @@ public class AppRestController {
             ("/admin/edit")
     @Transactional
     public ResponseEntity<String> updateUser(@RequestBody UserResponseDTO userResponseDTO) {
+        System.err.println("ПАРОЛЬ метода updateUser "+ userResponseDTO.getPassword());
         if (userService.findByEmail(userResponseDTO.getEmail()).isPresent()) {
             userService.update(userMapper.toEntityFromResponse(userResponseDTO));
             return ResponseEntity.status(HttpStatus.OK)

@@ -69,7 +69,7 @@ public class AppController {
         String username = authentication.getName();
         User user = userService.findByName(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        System.err.println(user.getUsername() + " " + user.getLastName());
+        System.err.println(user.getUsername() + "userPage в AppController " + user.getLastName());
         model.addAttribute("user", user);
         return "user_page"; // Имя шаблона для страницы пользователя
     }
@@ -80,7 +80,7 @@ public class AppController {
         String username = authentication.getName();
         User user = userService.findByName(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        System.err.println( user.getUsername()+ " "+ user.getLastName());
+        System.err.println( user.getUsername()+ "adminPage в AppController "+ user.getLastName());
         model.addAttribute("user",user);
         model.addAttribute("users", userService.viewAll());
         return "common-dashboard"; // Имя шаблона для страницы администратора

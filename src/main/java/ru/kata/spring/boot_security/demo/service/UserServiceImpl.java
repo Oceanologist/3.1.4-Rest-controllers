@@ -73,6 +73,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void update(User user) {
+        System.err.println("ПАРОЛЬ "+user.getPassword()+"     "+user.getUsername());
         User existingUser = userRepository.findById(user.getId()).orElseThrow();
         if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));

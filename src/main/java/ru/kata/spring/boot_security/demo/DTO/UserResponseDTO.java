@@ -13,7 +13,8 @@ public class UserResponseDTO {
     private String lastName;
     private String email;
     private int age;
-    private Set<Role> roles;
+    private String password;
+    private Set<String> roles;
 
 }
 
