@@ -6,28 +6,23 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import ru.kata.spring.boot_security.demo.DTO.UserRequestDTO;
-import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
-import ru.kata.spring.boot_security.demo.service.UserMapper;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
-import java.util.HashSet;
-import java.util.Set;
+
 @RequestMapping("/view")
 @Controller
 public class AppController {
     private final UserService userService;
     private final RoleService roleService;
-    private final UserMapper userMapper;
 
 
     @Autowired
-    public AppController(UserService userService, RoleService roleRepository,UserMapper userMapper) {
+    public AppController(UserService userService, RoleService roleRepository) {
         this.userService = userService;
         this.roleService = roleRepository;
-        this.userMapper=userMapper;
+
 
     }
 
@@ -40,7 +35,6 @@ public class AppController {
     public String exeptionMethod() {
         return "access-denied";
     }
-
 
 
     @GetMapping("/login")
@@ -63,13 +57,11 @@ public class AppController {
     }
 
 
-
     @GetMapping("/user")
     public String userPage(Authentication authentication, Model model) {
         String username = authentication.getName();
         User user = userService.findByName(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        System.err.println(user.getUsername() + "userPage в AppController " + user.getLastName());
         model.addAttribute("user", user);
         return "user_page"; // Имя шаблона для страницы пользователя
     }
@@ -80,10 +72,9 @@ public class AppController {
         String username = authentication.getName();
         User user = userService.findByName(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        System.err.println( user.getUsername()+ "adminPage в AppController "+ user.getLastName());
-        model.addAttribute("user",user);
+        model.addAttribute("user", user);
         model.addAttribute("users", userService.viewAll());
-        return "common-dashboard"; // Имя шаблона для страницы администратора
+        return "common-dashboard";
     }
 
 

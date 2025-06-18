@@ -10,9 +10,6 @@ import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Component
 public class DataBaseAdminRoleInitializer implements CommandLineRunner {
     private final RoleService roleService;

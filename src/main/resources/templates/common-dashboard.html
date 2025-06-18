@@ -90,7 +90,7 @@
                         <span th:text="${authority.authority.replace('ROLE_', '')}"></span>
                     </span>
                 </h5>
-                <form th:action="@{/view/logout}" method="post">
+                <form th:action="@{/view/logout}" method="get">
                     <button type="submit" class="btn btn-primary">Logout</button>
                 </form>
             </div>
