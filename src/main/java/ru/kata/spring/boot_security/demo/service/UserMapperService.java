@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class UserMapperService {
 
     private final RoleService roleService;
-    private final UserServiceImpl userServiceImpl;
+    private final UserService userService;
 
     public User mapFromResponse(UserResponseDTO userResponseDTO) {
         User user = new User();
@@ -25,7 +25,7 @@ public class UserMapperService {
         user.setLastName(userResponseDTO.getLastName());
         user.setEmail(userResponseDTO.getEmail());
         user.setAge(userResponseDTO.getAge());
-        user.setPassword(userServiceImpl.getPassword(userResponseDTO.getId()));
+        user.setPassword(userService.getPassword(userResponseDTO.getId()));
 
 
         if (userResponseDTO.getRoles() != null) {

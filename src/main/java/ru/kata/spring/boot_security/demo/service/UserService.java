@@ -23,6 +23,7 @@ public interface UserService {
     Optional<User> findByEmail(String email);
 
     public void changePassword(ChangePasswordDTO dto);
+    public String getPassword(Long id);
 
 }
 
